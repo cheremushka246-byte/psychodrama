@@ -10,7 +10,7 @@ st.set_page_config(
     layout="wide",
 )
 
-# Принудительно используем светлую палитру для страницы Streamlit.
+# Фиксируем светлую тему и для Streamlit, и для встроенной сцены.
 st.markdown(
     """
     <style>
@@ -64,19 +64,19 @@ st.markdown(
 
 
 # ---------------------------------------------------------------------
-# Библиотека фигуративных образов
+# Библиотека образов
 # ---------------------------------------------------------------------
 
 POOL = [
-    # Люди и персонажи
-    {"id": "person", "label": "Человек", "type": "person", "category": "people", "color": "#72A9C8"},
-    {"id": "person_child", "label": "Ребёнок", "type": "child", "category": "people", "color": "#E6AD69"},
-    {"id": "person_crown", "label": "Персонаж с короной", "type": "crowned", "category": "people", "color": "#A88BC7"},
-    {"id": "person_cape", "label": "Персонаж в плаще", "type": "cape", "category": "people", "color": "#6C83B5"},
-    {"id": "person_hair", "label": "Персонаж с длинными волосами", "type": "longhair", "category": "people", "color": "#C78672"},
-    {"id": "person_wide", "label": "Крупная фигура", "type": "wideperson", "category": "people", "color": "#7D9D88"},
+    # Взрослые фигуры. Их цвет и подпись пользователь может менять.
+    {"id": "adult_male", "label": "Взрослый — мужской образ", "type": "adult_male", "category": "people", "color": "#72A9C8"},
+    {"id": "adult_female", "label": "Взрослый — женский образ", "type": "adult_female", "category": "people", "color": "#A88BC7"},
 
-    # Фантастические образы
+    # Детские фигуры.
+    {"id": "boy", "label": "Ребёнок — мальчик", "type": "boy", "category": "people", "color": "#E6AD69"},
+    {"id": "girl", "label": "Ребёнок — девочка", "type": "girl", "category": "people", "color": "#D98991"},
+
+    # Фантастические и метафорические образы.
     {"id": "monster", "label": "Монстр", "type": "monster", "category": "creatures", "color": "#8B6AAE"},
     {"id": "ghost", "label": "Призрак", "type": "ghost", "category": "creatures", "color": "#93B9CA"},
     {"id": "dragon", "label": "Дракон", "type": "dragon", "category": "creatures", "color": "#72966E"},
@@ -86,7 +86,8 @@ POOL = [
     {"id": "shadow", "label": "Тень", "type": "shadow", "category": "creatures", "color": "#596779"},
     {"id": "fairy", "label": "Сказочный персонаж", "type": "fairy", "category": "creatures", "color": "#D58FB1"},
 
-    # Животные
+    # Животные.
+    {"id": "dog", "label": "Собака", "type": "dog", "category": "animals", "color": "#B98964"},
     {"id": "wolf", "label": "Волк", "type": "wolf", "category": "animals", "color": "#87929D"},
     {"id": "cat", "label": "Кошка", "type": "cat", "category": "animals", "color": "#D5A36D"},
     {"id": "bird", "label": "Птица", "type": "bird", "category": "animals", "color": "#71A9BB"},
@@ -94,7 +95,7 @@ POOL = [
     {"id": "bear", "label": "Медведь", "type": "bear", "category": "animals", "color": "#A77C62"},
     {"id": "butterfly", "label": "Бабочка", "type": "butterfly", "category": "animals", "color": "#B38BC6"},
 
-    # Символы и метафорические образы
+    # Символы.
     {"id": "circle", "label": "Круг", "type": "circle", "category": "symbols", "color": "#88B8D3"},
     {"id": "star", "label": "Звезда", "type": "star", "category": "symbols", "color": "#E3B95F"},
     {"id": "cloud", "label": "Облако", "type": "cloud", "category": "symbols", "color": "#A5B9D2"},
@@ -110,7 +111,7 @@ POOL = [
     {"id": "stone", "label": "Камень", "type": "stone", "category": "symbols", "color": "#919BA3"},
     {"id": "key", "label": "Ключ", "type": "key", "category": "symbols", "color": "#D1A953"},
 
-    # Предметы и пространство
+    # Предметы и пространство.
     {"id": "chair", "label": "Стул", "type": "chair", "category": "objects", "color": "#B98964"},
     {"id": "house", "label": "Дом", "type": "house", "category": "objects", "color": "#D59B72"},
     {"id": "door", "label": "Дверь", "type": "door", "category": "objects", "color": "#A8815F"},
@@ -358,23 +359,26 @@ APP_HTML = r"""
   <aside class="sidebar">
     <h2>Библиотека образов</h2>
     <div class="muted">
-      Здесь есть люди, фантастические существа, животные, символы и предметы.
-      Выберите образ или перетащите его на сцену.
+      Выбирайте человечков, фантастические образы, животных, символы и предметы.
+      Цвет фигуры и подпись можно изменить на свой вкус.
     </div>
     <div class="tabs" id="category-tabs"></div>
     <div class="pool" id="pool"></div>
     <div class="help-card">
-      Образ не имеет заранее заданного смысла. Вы сами решаете, кого или что
-      он будет обозначать. Можно менять подпись, цвет, размер и положение.
+      Пол, цвет и форма фигуры — только визуальные варианты, а не указание на
+      личность или значение. Смысл образу и подписи придаёте вы.
     </div>
+
     <div class="section-label">Свои ассоциации</div>
     <div class="muted">
-      Добавьте фигуру, выберите её форму, цвет и название. Например,
-      создайте собственный символ или образ.
+      Создайте свою фигуру или символ: выберите форму, задайте подпись и цвет.
     </div>
     <div class="selection-tools" style="margin-top:8px">
       <select id="custom-type" aria-label="Форма новой фигуры">
-        <option value="person">Человек</option>
+        <option value="adult_male">Взрослый — мужской образ</option>
+        <option value="adult_female">Взрослый — женский образ</option>
+        <option value="boy">Ребёнок — мальчик</option>
+        <option value="girl">Ребёнок — девочка</option>
         <option value="monster">Существо</option>
         <option value="circle">Круг</option>
         <option value="star">Звезда</option>
@@ -395,6 +399,16 @@ APP_HTML = r"""
       <div class="toolbar-left">
         <button class="tool-btn" id="grid-toggle" type="button">Сетка: выкл.</button>
         <button class="tool-btn" id="connect-toggle" type="button">Создать связь</button>
+        <button class="tool-btn" id="draw-toggle" type="button">Рисовать</button>
+        <label class="field" style="min-width:auto">
+          Цвет рисунка
+          <input id="draw-color" type="color" value="#587E9A">
+        </label>
+        <label class="field" style="min-width:100px">
+          Толщина
+          <input id="draw-width" type="range" min="2" max="18" value="5">
+        </label>
+        <button class="tool-btn" id="clear-drawings" type="button">Удалить рисунки</button>
         <button class="tool-btn" id="clear-scene" type="button">Очистить сцену</button>
       </div>
       <div class="toolbar-right">
@@ -406,8 +420,8 @@ APP_HTML = r"""
       </div>
     </div>
 
-    <div class="muted" id="connection-instructions">
-      Чтобы соединить фигуры: нажмите «Создать связь», затем выберите две фигуры по очереди.
+    <div class="muted" id="interaction-instructions">
+      Перетаскивайте образы мышью. Для рисования нажмите «Рисовать».
     </div>
     <div class="scene-tabs" id="scene-tabs"></div>
 
@@ -432,6 +446,7 @@ APP_HTML = r"""
               fill="url(#stage-gradient)"/>
         <rect id="stage-grid" x="0" y="0" width="1200" height="760"
               fill="url(#grid-pattern)" opacity="0"/>
+        <g id="scene-drawings"></g>
         <g id="scene-connections"></g>
         <g id="scene-items"></g>
         <g id="drop-hint" pointer-events="none">
@@ -441,7 +456,7 @@ APP_HTML = r"""
           </text>
           <text x="600" y="399" text-anchor="middle"
                 fill="#A0B4C3" font-size="16" font-family="Segoe UI, Arial">
-            Расставьте их и соедините, если это важно для вашей сцены
+            Расставьте их, соедините или дорисуйте собственные детали
           </text>
         </g>
       </svg>
@@ -501,9 +516,9 @@ APP_HTML = r"""
     <div class="status" id="status"></div>
     <div class="privacy">
       Это визуальный инструмент для исследования ситуации, а не диагностика.
-      Фигуры, связи, цвет и положение не интерпретируются автоматически.
-      Упражнение добровольное: можно изменить сцену, сделать паузу или завершить
-      работу в любой момент. Для продолжения позже скачайте файл проекта JSON.
+      Фигуры, рисунки, связи, цвет и положение не интерпретируются автоматически.
+      Упражнение добровольное: можно сделать паузу или завершить его в любой момент.
+      Для продолжения позже скачайте файл проекта JSON.
     </div>
   </main>
 </div>
@@ -514,9 +529,9 @@ APP_HTML = r"""
   const svgNS = "http://www.w3.org/2000/svg";
 
   const categories = [
-    {id: "people", label: "Люди", types: ["person", "child", "crowned", "cape", "longhair", "wideperson"]},
+    {id: "people", label: "Люди", types: ["adult_male", "adult_female", "boy", "girl"]},
     {id: "creatures", label: "Существа", types: ["monster", "ghost", "dragon", "alien", "giant", "robot", "shadow", "fairy"]},
-    {id: "animals", label: "Животные", types: ["wolf", "cat", "bird", "snake", "bear", "butterfly"]},
+    {id: "animals", label: "Животные", types: ["dog", "wolf", "cat", "bird", "snake", "bear", "butterfly"]},
     {id: "symbols", label: "Символы", types: ["circle", "star", "cloud", "heart", "sun", "moon", "lightning", "flame", "mask", "shield", "spiral", "mountain", "stone", "key"]},
     {id: "objects", label: "Предметы и пространство", types: ["chair", "house", "door", "window", "tree", "table", "wall", "boundary", "bridge", "road", "chain", "empty"]}
   ];
@@ -524,6 +539,7 @@ APP_HTML = r"""
   const stage = document.getElementById("stage");
   const layer = document.getElementById("scene-items");
   const connectionLayer = document.getElementById("scene-connections");
+  const drawingLayer = document.getElementById("scene-drawings");
   const hint = document.getElementById("drop-hint");
   const pool = document.getElementById("pool");
   const tabsRoot = document.getElementById("category-tabs");
@@ -532,9 +548,9 @@ APP_HTML = r"""
   const connectionPanel = document.getElementById("connection-panel");
   const status = document.getElementById("status");
   const grid = document.getElementById("stage-grid");
-  const connectionInstructions = document.getElementById("connection-instructions");
+  const instructions = document.getElementById("interaction-instructions");
 
-  let scenes = [{name: "Сцена 1", nodes: [], connections: []}];
+  let scenes = [{name: "Сцена 1", nodes: [], connections: [], drawings: []}];
   let activeScene = 0;
   let activeCategory = "people";
   let selectedId = null;
@@ -545,6 +561,8 @@ APP_HTML = r"""
   let dragState = null;
   let connectMode = false;
   let pendingConnectionFrom = null;
+  let drawMode = false;
+  let drawingState = null;
 
   const currentScene = () => scenes[activeScene];
 
@@ -564,68 +582,67 @@ APP_HTML = r"""
     const add = (tag, attrs) => parent.appendChild(svgEl(tag, attrs));
     const stroke = "#425F73";
 
-    function personShape(scale = 1, style = "plain") {
+    function personShape(scale, style) {
       const group = svgEl("g", {transform: `scale(${scale})`});
       parent.appendChild(group);
 
-      if (style === "crowned") {
+      // Разные варианты причёски и одежды помогают визуально различать
+      // шаблоны, не присваивая фигурам заданное психологическое значение.
+      if (style === "female" || style === "girl") {
         group.appendChild(svgEl("path", {
-          d: "M-14 -36 L-10 -52 L0 -42 L10 -52 L14 -36 Z",
-          fill: "#E3B95F", stroke: "#927333", "stroke-width": 2
+          d: "M-14 -34 Q-25 -22 -21 3 L-15 9 L-12 -14 Q0 -25 12 -14 L15 9 L21 3 Q25 -22 14 -34 Z",
+          fill: color, stroke, "stroke-width": 2
         }));
-      }
-
-      if (style === "cape") {
+      } else {
         group.appendChild(svgEl("path", {
-          d: "M-13 -7 L-31 31 L0 22 L31 31 L13 -7 Z",
-          fill: color, "fill-opacity": .55,
-          stroke, "stroke-width": 2
-        }));
-      }
-
-      if (style === "longhair") {
-        group.appendChild(svgEl("path", {
-          d: "M-15 -28 Q-22 -8 -19 9 L-14 8 L-12 -14 M15 -28 Q22 -8 19 9 L14 8 L12 -14",
+          d: "M-12 -35 Q0 -42 12 -35 L17 -24 Q0 -31 -17 -24 Z",
           fill: color, stroke, "stroke-width": 2
         }));
       }
 
-      const headY = style === "crowned" ? -24 : -24;
       group.appendChild(svgEl("circle", {
-        cx: 0, cy: headY, r: 12,
-        fill: color, stroke, "stroke-width": 2
-      }));
-      group.appendChild(svgEl("path", {
-        d: style === "wideperson"
-          ? "M-22 30 Q-21 2 -15 -5 Q0 -14 15 -5 Q21 2 22 30 Z"
-          : "M-17 30 Q-17 3 -12 -5 Q0 -13 12 -5 Q17 3 17 30 Z",
-        fill: color, stroke, "stroke-width": 2,
-        "stroke-linejoin": "round"
-      }));
-      group.appendChild(svgEl("path", {
-        d: "M-10 2 L-25 17 M10 2 L25 17 M-8 29 L-15 47 M8 29 L15 47",
-        fill: "none", stroke, "stroke-width": 5,
-        "stroke-linecap": "round"
+        cx: 0, cy: -24, r: 12,
+        fill: "#F1C9A8", stroke, "stroke-width": 2
       }));
 
-      if (style === "crowned") {
-        group.appendChild(svgEl("circle", {cx: -4, cy: -25, r: 1.5, fill: "#263D4C"}));
-        group.appendChild(svgEl("circle", {cx: 4, cy: -25, r: 1.5, fill: "#263D4C"}));
+      if (style === "female" || style === "girl") {
+        group.appendChild(svgEl("path", {
+          d: "M-12 -8 L12 -8 L22 29 L-22 29 Z",
+          fill: color, stroke, "stroke-width": 2,
+          "stroke-linejoin": "round"
+        }));
+        group.appendChild(svgEl("path", {
+          d: "M-8 29 L-12 47 M8 29 L12 47 M-12 0 L-25 16 M12 0 L25 16",
+          fill: "none", stroke, "stroke-width": 4,
+          "stroke-linecap": "round"
+        }));
+      } else {
+        group.appendChild(svgEl("path", {
+          d: "M-15 -8 L15 -8 L19 28 L-19 28 Z",
+          fill: color, stroke, "stroke-width": 2,
+          "stroke-linejoin": "round"
+        }));
+        group.appendChild(svgEl("path", {
+          d: "M-8 28 L-12 47 M8 28 L12 47 M-12 0 L-25 16 M12 0 L25 16",
+          fill: "none", stroke, "stroke-width": 4,
+          "stroke-linecap": "round"
+        }));
       }
+
+      group.appendChild(svgEl("circle", {cx: -4, cy: -25, r: 1.5, fill: "#344955"}));
+      group.appendChild(svgEl("circle", {cx: 4, cy: -25, r: 1.5, fill: "#344955"}));
     }
 
-    if (type === "person") {
-      personShape(1, "plain");
-    } else if (type === "child") {
-      personShape(.82, "plain");
-    } else if (type === "crowned") {
-      personShape(1, "crowned");
-    } else if (type === "cape") {
-      personShape(1, "cape");
-    } else if (type === "longhair") {
-      personShape(1, "longhair");
-    } else if (type === "wideperson") {
-      personShape(1, "wideperson");
+    if (type === "adult_male") {
+      personShape(1, "male");
+    } else if (type === "adult_female") {
+      personShape(1, "female");
+    } else if (type === "boy") {
+      personShape(.78, "boy");
+    } else if (type === "girl") {
+      personShape(.78, "girl");
+    } else if (type === "giant") {
+      personShape(1.35, "male");
     } else if (type === "monster") {
       add("path", {
         d: "M-34 25 Q-40 0 -29 -16 L-39 -37 L-18 -29 Q-8 -39 2 -29 L20 -41 L19 -20 Q39 -7 33 19 L25 33 L13 29 L8 43 L-5 32 L-20 41 L-23 27 Z",
@@ -670,11 +687,6 @@ APP_HTML = r"""
         "stroke-linejoin": "round"
       });
       add("circle", {cx: 23, cy: -3, r: 3, fill: "#283A2C"});
-      add("path", {
-        d: "M25 8 L42 17 M-3 24 L-12 38 M11 23 L17 36",
-        fill: "none", stroke: "#486848", "stroke-width": 3,
-        "stroke-linecap": "round"
-      });
     } else if (type === "alien") {
       add("ellipse", {
         cx: 0, cy: -12, rx: 26, ry: 35,
@@ -683,12 +695,10 @@ APP_HTML = r"""
       add("ellipse", {cx: -10, cy: -14, rx: 6, ry: 10, fill: "#293E43"});
       add("ellipse", {cx: 10, cy: -14, rx: 6, ry: 10, fill: "#293E43"});
       add("path", {
-        d: "M-12 4 Q0 11 12 4 M-12 21 L-24 39 M12 21 L24 39 M-22 1 L-38 12 M22 1 L38 12",
+        d: "M-12 21 L-24 39 M12 21 L24 39 M-22 1 L-38 12 M22 1 L38 12",
         fill: "none", stroke: "#4D786D", "stroke-width": 4,
         "stroke-linecap": "round"
       });
-    } else if (type === "giant") {
-      personShape(1.35, "plain");
     } else if (type === "robot") {
       add("rect", {
         x: -27, y: -37, width: 54, height: 46, rx: 8,
@@ -713,15 +723,27 @@ APP_HTML = r"""
         stroke: "#465568", "stroke-width": 2.5
       });
     } else if (type === "fairy") {
-      personShape(.9, "plain");
       add("path", {
-        d: "M-12 -3 Q-45 -31 -37 5 Q-31 19 -12 12 M12 -3 Q45 -31 37 5 Q31 19 12 12",
+        d: "M0 -20 Q-40 -47 -38 -10 Q-34 10 -8 7 M0 -20 Q40 -47 38 -10 Q34 10 8 7",
         fill: color, "fill-opacity": .45,
         stroke: "#A65F8C", "stroke-width": 2
       });
+      personShape(.82, "female");
+    } else if (type === "dog") {
+      // Собака с висячими ушами, мордой и хвостом.
       add("path", {
-        d: "M-9 -7 L-28 -27 M9 -7 L28 -27",
-        fill: "none", stroke: "#A65F8C", "stroke-width": 2
+        d: "M-24 -13 Q-31 -31 -43 -25 Q-47 -5 -34 5 L-31 18 Q-28 35 0 35 Q28 35 31 18 L34 5 Q47 -5 43 -25 Q31 -31 24 -13 Q12 -23 0 -23 Q-12 -23 -24 -13 Z",
+        fill: color, stroke: "#6E5948", "stroke-width": 2.5,
+        "stroke-linejoin": "round"
+      });
+      add("ellipse", {cx: -11, cy: -2, rx: 3, ry: 4, fill: "#2F3D43"});
+      add("ellipse", {cx: 11, cy: -2, rx: 3, ry: 4, fill: "#2F3D43"});
+      add("ellipse", {cx: 0, cy: 12, rx: 12, ry: 9, fill: "#F2E2D2", stroke: "#6E5948", "stroke-width": 1.5});
+      add("ellipse", {cx: 0, cy: 8, rx: 4, ry: 3, fill: "#39484F"});
+      add("path", {
+        d: "M0 11 Q-2 19 -8 17 M0 11 Q2 19 8 17 M29 10 Q44 8 42 -5",
+        fill: "none", stroke: "#6E5948", "stroke-width": 2.5,
+        "stroke-linecap": "round"
       });
     } else if (type === "wolf" || type === "cat" || type === "bear") {
       const ears = type === "cat"
@@ -736,33 +758,15 @@ APP_HTML = r"""
       });
       add("ellipse", {cx: -11, cy: -4, rx: 3.2, ry: 4, fill: "#263A46"});
       add("ellipse", {cx: 11, cy: -4, rx: 3.2, ry: 4, fill: "#263A46"});
-      add("path", {
-        d: "M-6 10 Q0 15 6 10 L0 16 Z",
-        fill: "#4E5960"
-      });
-      add("path", {
-        d: "M-4 17 Q0 22 4 17",
-        fill: "none", stroke: "#526878", "stroke-width": 2
-      });
-      if (type === "wolf") {
-        add("path", {
-          d: "M-18 17 L-10 28 L0 19 L10 28 L18 17",
-          fill: "#FFFFFF", stroke: "#526878", "stroke-width": 1.5
-        });
-      }
+      add("path", {d: "M-6 10 Q0 15 6 10 L0 16 Z", fill: "#4E5960"});
+      add("path", {d: "M-4 17 Q0 22 4 17", fill: "none", stroke: "#526878", "stroke-width": 2});
     } else if (type === "bird") {
       add("path", {
         d: "M-32 9 Q-30 -20 -5 -24 Q20 -30 32 -9 L15 -4 L31 6 Q17 28 -4 23 Q-25 21 -32 9 Z",
         fill: color, stroke: "#496E7F", "stroke-width": 2.5
       });
-      add("path", {
-        d: "M-5 -14 Q14 -2 -5 12 Q-1 -4 -19 -7 Z",
-        fill: "#DCECF2", stroke: "#496E7F", "stroke-width": 1.5
-      });
-      add("path", {
-        d: "M30 -8 L44 -2 L30 4 Z",
-        fill: "#E0AE4D", stroke: "#927333", "stroke-width": 1.5
-      });
+      add("path", {d: "M-5 -14 Q14 -2 -5 12 Q-1 -4 -19 -7 Z", fill: "#DCECF2", stroke: "#496E7F", "stroke-width": 1.5});
+      add("path", {d: "M30 -8 L44 -2 L30 4 Z", fill: "#E0AE4D", stroke: "#927333", "stroke-width": 1.5});
       add("circle", {cx: 19, cy: -11, r: 2.5, fill: "#263A46"});
     } else if (type === "snake") {
       add("path", {
@@ -772,20 +776,12 @@ APP_HTML = r"""
       });
       add("circle", {cx: 32, cy: -17, r: 9, fill: color, stroke: "#526B4B", "stroke-width": 2});
       add("circle", {cx: 35, cy: -20, r: 1.8, fill: "#263A46"});
-      add("path", {
-        d: "M40 -14 L49 -11 M40 -14 L49 -17",
-        fill: "none", stroke: "#B45C63", "stroke-width": 2
-      });
     } else if (type === "butterfly") {
       add("ellipse", {cx: -18, cy: -14, rx: 18, ry: 23, fill: color, stroke: "#66577B", "stroke-width": 2});
       add("ellipse", {cx: 18, cy: -14, rx: 18, ry: 23, fill: color, stroke: "#66577B", "stroke-width": 2});
       add("ellipse", {cx: -16, cy: 17, rx: 14, ry: 18, fill: color, stroke: "#66577B", "stroke-width": 2});
       add("ellipse", {cx: 16, cy: 17, rx: 14, ry: 18, fill: color, stroke: "#66577B", "stroke-width": 2});
-      add("path", {
-        d: "M0 -20 V27 M0 -18 Q-7 -34 -13 -35 M0 -18 Q7 -34 13 -35",
-        fill: "none", stroke: "#66577B", "stroke-width": 3,
-        "stroke-linecap": "round"
-      });
+      add("path", {d: "M0 -20 V27 M0 -18 Q-7 -34 -13 -35 M0 -18 Q7 -34 13 -35", fill: "none", stroke: "#66577B", "stroke-width": 3, "stroke-linecap": "round"});
     } else if (type === "circle") {
       add("circle", {cx: 0, cy: 0, r: 30, fill: color, "fill-opacity": .82, stroke, "stroke-width": 2.5});
     } else if (type === "star") {
@@ -805,10 +801,12 @@ APP_HTML = r"""
       });
     } else if (type === "sun") {
       for (let i = 0; i < 8; i++) {
-        const a = i * Math.PI / 4;
-        const x1 = Math.cos(a) * 25, y1 = Math.sin(a) * 25;
-        const x2 = Math.cos(a) * 39, y2 = Math.sin(a) * 39;
-        add("line", {x1, y1, x2, y2, stroke: color, "stroke-width": 5, "stroke-linecap": "round"});
+        const angle = i * Math.PI / 4;
+        add("line", {
+          x1: Math.cos(angle) * 25, y1: Math.sin(angle) * 25,
+          x2: Math.cos(angle) * 39, y2: Math.sin(angle) * 39,
+          stroke: color, "stroke-width": 5, "stroke-linecap": "round"
+        });
       }
       add("circle", {cx: 0, cy: 0, r: 21, fill: color, stroke: "#A4772A", "stroke-width": 2});
     } else if (type === "moon") {
@@ -827,74 +825,30 @@ APP_HTML = r"""
         d: "M0 40 Q-35 22 -24 -4 Q-20 -20 -7 -28 Q-8 -6 4 -1 Q10 -22 18 -34 Q41 1 27 24 Q18 40 0 40 Z",
         fill: color, stroke: "#A85C43", "stroke-width": 2.5
       });
-      add("path", {
-        d: "M0 28 Q-12 18 -5 5 Q0 15 8 11 Q17 25 6 31 Z",
-        fill: "#FFE9AE"
-      });
+      add("path", {d: "M0 28 Q-12 18 -5 5 Q0 15 8 11 Q17 25 6 31 Z", fill: "#FFE9AE"});
     } else if (type === "mask") {
-      add("path", {
-        d: "M-34 -21 Q0 -37 34 -21 L29 17 Q0 42 -29 17 Z",
-        fill: color, stroke: "#66577B", "stroke-width": 2.5
-      });
-      add("path", {
-        d: "M-23 -4 Q-12 -13 -2 -4 M2 -4 Q13 -13 23 -4",
-        fill: "none", stroke: "#FFFFFF", "stroke-width": 3
-      });
-      add("path", {
-        d: "M-10 16 Q0 21 10 16",
-        fill: "none", stroke: "#66577B", "stroke-width": 2
-      });
+      add("path", {d: "M-34 -21 Q0 -37 34 -21 L29 17 Q0 42 -29 17 Z", fill: color, stroke: "#66577B", "stroke-width": 2.5});
+      add("path", {d: "M-23 -4 Q-12 -13 -2 -4 M2 -4 Q13 -13 23 -4", fill: "none", stroke: "#FFFFFF", "stroke-width": 3});
+      add("path", {d: "M-10 16 Q0 21 10 16", fill: "none", stroke: "#66577B", "stroke-width": 2});
     } else if (type === "shield") {
-      add("path", {
-        d: "M0 -39 L31 -27 L27 10 Q19 31 0 41 Q-19 31 -27 10 L-31 -27 Z",
-        fill: color, stroke: "#4E776E", "stroke-width": 3,
-        "stroke-linejoin": "round"
-      });
-      add("path", {
-        d: "M0 -25 V27 M-18 0 H18",
-        fill: "none", stroke: "#FFFFFF", "stroke-width": 3,
-        "stroke-linecap": "round"
-      });
+      add("path", {d: "M0 -39 L31 -27 L27 10 Q19 31 0 41 Q-19 31 -27 10 L-31 -27 Z", fill: color, stroke: "#4E776E", "stroke-width": 3});
+      add("path", {d: "M0 -25 V27 M-18 0 H18", fill: "none", stroke: "#FFFFFF", "stroke-width": 3, "stroke-linecap": "round"});
     } else if (type === "spiral") {
-      add("path", {
-        d: "M0 0 C4 -2 7 3 4 7 C-2 14 -14 7 -12 -3 C-10 -19 14 -23 24 -10 C38 9 22 34 1 35 C-27 36 -43 7 -31 -19",
-        fill: "none", stroke: color, "stroke-width": 5,
-        "stroke-linecap": "round"
-      });
+      add("path", {d: "M0 0 C4 -2 7 3 4 7 C-2 14 -14 7 -12 -3 C-10 -19 14 -23 24 -10 C38 9 22 34 1 35 C-27 36 -43 7 -31 -19", fill: "none", stroke: color, "stroke-width": 5, "stroke-linecap": "round"});
     } else if (type === "mountain") {
-      add("path", {
-        d: "M-42 30 L-10 -24 L3 -3 L18 -37 L45 30 Z",
-        fill: color, stroke: "#5E7E72", "stroke-width": 2.5,
-        "stroke-linejoin": "round"
-      });
-      add("path", {
-        d: "M-10 -24 L-3 -9 L3 -3 L9 -12 L18 -37 L25 -12 L18 -18 L11 -9 L3 -15 L-3 -9",
-        fill: "#FFFFFF", stroke: "#FFFFFF", "stroke-width": 1
-      });
+      add("path", {d: "M-42 30 L-10 -24 L3 -3 L18 -37 L45 30 Z", fill: color, stroke: "#5E7E72", "stroke-width": 2.5});
     } else if (type === "stone") {
-      add("path", {
-        d: "M-36 20 L-28 -12 L-5 -31 L23 -25 L38 3 L27 27 L-17 32 Z",
-        fill: color, stroke: "#677681", "stroke-width": 2.5,
-        "stroke-linejoin": "round"
-      });
+      add("path", {d: "M-36 20 L-28 -12 L-5 -31 L23 -25 L38 3 L27 27 L-17 32 Z", fill: color, stroke: "#677681", "stroke-width": 2.5});
     } else if (type === "key") {
       add("circle", {cx: -18, cy: 0, r: 17, fill: "none", stroke: color, "stroke-width": 7});
       add("path", {d: "M-2 0 H36 M22 0 V12 M32 0 V9", fill: "none", stroke: color, "stroke-width": 7, "stroke-linecap": "round"});
     } else if (type === "chair") {
-      add("path", {
-        d: "M-20 -25 L18 -25 L18 3 L-20 3 Z M-20 3 L-20 31 M18 3 L18 31 M-20 3 L18 3",
-        fill: "none", stroke: color, "stroke-width": 7,
-        "stroke-linecap": "round", "stroke-linejoin": "round"
-      });
+      add("path", {d: "M-20 -25 L18 -25 L18 3 L-20 3 Z M-20 3 L-20 31 M18 3 L18 31", fill: "none", stroke: color, "stroke-width": 7, "stroke-linecap": "round"});
     } else if (type === "house") {
-      add("path", {
-        d: "M-36 -3 L0 -33 L36 -3 L29 0 L29 32 L-29 32 L-29 0 Z",
-        fill: color, "fill-opacity": .82, stroke: "#765744",
-        "stroke-width": 2.5, "stroke-linejoin": "round"
-      });
+      add("path", {d: "M-36 -3 L0 -33 L36 -3 L29 0 L29 32 L-29 32 L-29 0 Z", fill: color, stroke: "#765744", "stroke-width": 2.5});
       add("rect", {x: -7, y: 9, width: 14, height: 23, rx: 2, fill: "#FFF9F1", stroke: "#765744", "stroke-width": 2});
     } else if (type === "door") {
-      add("rect", {x: -25, y: -38, width: 50, height: 76, rx: 3, fill: color, "fill-opacity": .78, stroke: "#765744", "stroke-width": 3});
+      add("rect", {x: -25, y: -38, width: 50, height: 76, rx: 3, fill: color, stroke: "#765744", "stroke-width": 3});
       add("circle", {cx: 14, cy: 3, r: 3, fill: "#765744"});
     } else if (type === "window") {
       add("rect", {x: -34, y: -31, width: 68, height: 62, rx: 4, fill: color, "fill-opacity": .35, stroke: "#557E93", "stroke-width": 4});
@@ -905,14 +859,10 @@ APP_HTML = r"""
       add("circle", {cx: -18, cy: 1, r: 17, fill: color, stroke: "#547B5A", "stroke-width": 2});
       add("circle", {cx: 18, cy: 1, r: 17, fill: color, stroke: "#547B5A", "stroke-width": 2});
     } else if (type === "table") {
-      add("path", {
-        d: "M-34 -12 L34 -12 L30 1 L-30 1 Z M-24 1 L-28 33 M24 1 L28 33",
-        fill: color, stroke: "#765D4A", "stroke-width": 4,
-        "stroke-linejoin": "round", "stroke-linecap": "round"
-      });
+      add("path", {d: "M-34 -12 L34 -12 L30 1 L-30 1 Z M-24 1 L-28 33 M24 1 L28 33", fill: color, stroke: "#765D4A", "stroke-width": 4});
     } else if (type === "wall") {
       add("rect", {x: -34, y: -39, width: 68, height: 78, rx: 5, fill: color, "fill-opacity": .66, stroke: "#677B8A", "stroke-width": 2.5});
-      add("path", {d: "M-34 -10 H34 M-34 16 H34 M0 -39 V-10 M-16 -10 V16 M12 -10 V16 M-2 16 V39", fill: "none", stroke: "#FFFFFF", "stroke-opacity": .8, "stroke-width": 2});
+      add("path", {d: "M-34 -10 H34 M-34 16 H34 M0 -39 V-10 M-16 -10 V16 M12 -10 V16 M-2 16 V39", fill: "none", stroke: "#FFFFFF", "stroke-width": 2});
     } else if (type === "boundary") {
       add("ellipse", {cx: 0, cy: 0, rx: 42, ry: 28, fill: "none", stroke: color, "stroke-width": 4, "stroke-dasharray": "9 7"});
     } else if (type === "bridge") {
@@ -929,9 +879,9 @@ APP_HTML = r"""
     }
   }
 
-  function addPoolIcon(parent, item) {
+  function renderPoolIcon(parent, item) {
     const icon = svgEl("svg", {
-      viewBox: "-52 -55 104 115",
+      viewBox: "-55 -58 110 120",
       class: "pool-icon",
       "aria-hidden": "true"
     });
@@ -966,7 +916,7 @@ APP_HTML = r"""
       button.className = "pool-item";
       button.draggable = true;
       button.title = "Нажмите, чтобы добавить, или перетащите на сцену";
-      addPoolIcon(button, item);
+      renderPoolIcon(button, item);
 
       const label = document.createElement("span");
       label.textContent = item.label;
@@ -984,7 +934,6 @@ APP_HTML = r"""
 
   function renderSceneTabs() {
     sceneTabs.innerHTML = "";
-
     scenes.forEach((scene, index) => {
       const button = document.createElement("button");
       button.type = "button";
@@ -1023,6 +972,7 @@ APP_HTML = r"""
     selectedId = null;
     selectedConnectionId = null;
     pendingConnectionFrom = null;
+    drawingState = null;
     renderSceneTabs();
     renderStage();
     updateSelectionPanels();
@@ -1030,7 +980,12 @@ APP_HTML = r"""
 
   function addScene() {
     if (scenes.length >= 6) return;
-    scenes.push({name: `Сцена ${scenes.length + 1}`, nodes: [], connections: []});
+    scenes.push({
+      name: `Сцена ${scenes.length + 1}`,
+      nodes: [],
+      connections: [],
+      drawings: []
+    });
     activeScene = scenes.length - 1;
     selectedId = null;
     selectedConnectionId = null;
@@ -1058,7 +1013,7 @@ APP_HTML = r"""
     selectedConnectionId = null;
     renderStage();
     updateSelectionPanels();
-    setStatus(`Добавлен образ «${item.label}». Подпись можно изменить.`);
+    setStatus(`Добавлен образ «${item.label}». Цвет и подпись можно изменить.`);
   }
 
   function findSelectedNode() {
@@ -1067,6 +1022,23 @@ APP_HTML = r"""
 
   function findSelectedConnection() {
     return currentScene().connections.find(connection => connection.id === selectedConnectionId) || null;
+  }
+
+  function renderDrawing(drawing) {
+    if (!Array.isArray(drawing.points) || drawing.points.length < 2) return null;
+    const d = drawing.points.map((point, index) =>
+      `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`
+    ).join(" ");
+
+    return svgEl("path", {
+      d,
+      fill: "none",
+      stroke: drawing.color || "#587E9A",
+      "stroke-width": drawing.width || 5,
+      "stroke-linecap": "round",
+      "stroke-linejoin": "round",
+      "pointer-events": "none"
+    });
   }
 
   function renderNode(node) {
@@ -1094,7 +1066,7 @@ APP_HTML = r"""
 
     const caption = svgEl("text", {
       x: 0,
-      y: 68,
+      y: 70,
       "text-anchor": "middle",
       "font-family": "Segoe UI, Arial, sans-serif",
       "font-size": 15,
@@ -1151,21 +1123,18 @@ APP_HTML = r"""
       x1: startX, y1: startY, x2: endX, y2: endY,
       stroke: connection.color || "#688BA7",
       "stroke-width": connection.id === selectedConnectionId ? 4 : 3,
-      "stroke-linecap": "round",
-      "data-visible-line": "true"
+      "stroke-linecap": "round"
     });
 
     if (dash) visibleLine.setAttribute("stroke-dasharray", dash);
     if (connection.arrow) visibleLine.setAttribute("marker-end", "url(#arrowhead)");
     group.appendChild(visibleLine);
 
-    // Широкая прозрачная линия делает выбор связи удобнее.
     group.appendChild(svgEl("line", {
       x1: startX, y1: startY, x2: endX, y2: endY,
       stroke: "transparent",
       "stroke-width": 18,
-      "pointer-events": "stroke",
-      "data-connection-hit": "true"
+      "pointer-events": "stroke"
     }));
 
     if (connection.label) {
@@ -1190,8 +1159,14 @@ APP_HTML = r"""
   }
 
   function renderStage() {
+    drawingLayer.innerHTML = "";
     connectionLayer.innerHTML = "";
     layer.innerHTML = "";
+
+    currentScene().drawings.forEach(drawing => {
+      const path = renderDrawing(drawing);
+      if (path) drawingLayer.appendChild(path);
+    });
 
     currentScene().connections.forEach(connection => {
       const rendered = renderConnection(connection);
@@ -1199,10 +1174,14 @@ APP_HTML = r"""
     });
 
     currentScene().nodes.forEach(node => layer.appendChild(renderNode(node)));
+
     hint.style.display =
-      currentScene().nodes.length || currentScene().connections.length
+      currentScene().nodes.length ||
+      currentScene().connections.length ||
+      currentScene().drawings.length
         ? "none"
         : "block";
+
     grid.setAttribute("opacity", gridOn ? "1" : "0");
   }
 
@@ -1282,12 +1261,28 @@ APP_HTML = r"""
     connectMode = false;
     document.getElementById("connect-toggle").classList.remove("active");
     document.getElementById("connect-toggle").textContent = "Создать связь";
-    setStatus("Связь создана. При желании добавьте подпись и настройте линию.");
+    setStatus("Связь создана. Можно добавить подпись и настроить линию.");
     renderStage();
     updateSelectionPanels();
   }
 
   stage.addEventListener("pointerdown", event => {
+    if (drawMode) {
+      const point = pointerToSvg(event);
+      drawingState = {
+        points: [point],
+        color: document.getElementById("draw-color").value,
+        width: Number(document.getElementById("draw-width").value)
+      };
+      currentScene().drawings.push(drawingState);
+      stage.setPointerCapture(event.pointerId);
+      selectedId = null;
+      selectedConnectionId = null;
+      updateSelectionPanels();
+      event.preventDefault();
+      return;
+    }
+
     const connectionGroup = event.target.closest("[data-connection-id]");
     if (connectionGroup) {
       if (connectMode) return;
@@ -1304,7 +1299,7 @@ APP_HTML = r"""
     if (connectMode) {
       if (!nodeGroup) {
         pendingConnectionFrom = null;
-        setStatus("Связь отменена. Выберите первую фигуру или выйдите из режима связи.");
+        setStatus("Связь отменена. Выберите первую фигуру или выключите режим связи.");
         renderStage();
         return;
       }
@@ -1353,6 +1348,20 @@ APP_HTML = r"""
   });
 
   stage.addEventListener("pointermove", event => {
+    if (drawMode && drawingState) {
+      const point = pointerToSvg(event);
+      const points = drawingState.points;
+      const previous = points[points.length - 1];
+      const distance = Math.hypot(point.x - previous.x, point.y - previous.y);
+
+      if (distance > 2) {
+        points.push(point);
+        renderStage();
+      }
+      event.preventDefault();
+      return;
+    }
+
     if (!dragState) return;
 
     const node = currentScene().nodes.find(item => item.id === dragState.id);
@@ -1364,12 +1373,13 @@ APP_HTML = r"""
     renderStage();
   });
 
-  function stopDragging() {
+  function stopPointerAction() {
+    drawingState = null;
     dragState = null;
   }
 
-  stage.addEventListener("pointerup", stopDragging);
-  stage.addEventListener("pointercancel", stopDragging);
+  stage.addEventListener("pointerup", stopPointerAction);
+  stage.addEventListener("pointercancel", stopPointerAction);
 
   stage.addEventListener("keydown", event => {
     const nodeGroup = event.target.closest("[data-node-id]");
@@ -1392,14 +1402,38 @@ APP_HTML = r"""
     }
   });
 
+  document.getElementById("draw-toggle").onclick = event => {
+    drawMode = !drawMode;
+    if (drawMode) {
+      connectMode = false;
+      pendingConnectionFrom = null;
+      document.getElementById("connect-toggle").classList.remove("active");
+      document.getElementById("connect-toggle").textContent = "Создать связь";
+    }
+
+    event.target.classList.toggle("active", drawMode);
+    event.target.textContent = drawMode ? "Режим рисования: вкл." : "Рисовать";
+    instructions.textContent = drawMode
+      ? "Режим рисования включён: рисуйте мышью или пальцем прямо на сцене."
+      : "Перетаскивайте образы мышью. Для рисования нажмите «Рисовать».";
+    setStatus(drawMode ? "Можно рисовать на доске." : "Режим рисования выключен.");
+  };
+
   document.getElementById("connect-toggle").onclick = event => {
     connectMode = !connectMode;
     pendingConnectionFrom = null;
+
+    if (connectMode) {
+      drawMode = false;
+      document.getElementById("draw-toggle").classList.remove("active");
+      document.getElementById("draw-toggle").textContent = "Рисовать";
+    }
+
     event.target.classList.toggle("active", connectMode);
     event.target.textContent = connectMode ? "Выберите 2 фигуры…" : "Создать связь";
-    connectionInstructions.textContent = connectMode
-      ? "Режим связи включён: нажмите на первую фигуру, затем на вторую."
-      : "Чтобы соединить фигуры: нажмите «Создать связь», затем выберите две фигуры по очереди.";
+    instructions.textContent = connectMode
+      ? "Нажмите на первую фигуру, затем на вторую, чтобы соединить их."
+      : "Перетаскивайте образы мышью. Для рисования нажмите «Рисовать».";
     setStatus(connectMode ? "Выберите первую фигуру для связи." : "Режим связи выключен.");
     renderStage();
   };
@@ -1493,11 +1527,22 @@ APP_HTML = r"""
     renderStage();
   };
 
+  document.getElementById("clear-drawings").onclick = () => {
+    if (!currentScene().drawings.length) return;
+    if (!confirm("Удалить все свободные рисунки с текущей сцены?")) return;
+    currentScene().drawings = [];
+    renderStage();
+    setStatus("Свободные рисунки удалены.");
+  };
+
   document.getElementById("clear-scene").onclick = () => {
-    if (!currentScene().nodes.length && !currentScene().connections.length) return;
+    const scene = currentScene();
+    if (!scene.nodes.length && !scene.connections.length && !scene.drawings.length) return;
     if (!confirm("Очистить текущую сцену? Это действие нельзя отменить.")) return;
-    currentScene().nodes = [];
-    currentScene().connections = [];
+
+    scene.nodes = [];
+    scene.connections = [];
+    scene.drawings = [];
     selectedId = null;
     selectedConnectionId = null;
     renderStage();
@@ -1534,7 +1579,8 @@ APP_HTML = r"""
     clone.querySelectorAll(".selection-ring").forEach(element => element.remove());
 
     const dropHint = clone.querySelector("#drop-hint");
-    if (dropHint && (currentScene().nodes.length || currentScene().connections.length)) {
+    const scene = currentScene();
+    if (dropHint && (scene.nodes.length || scene.connections.length || scene.drawings.length)) {
       dropHint.remove();
     }
     return new XMLSerializer().serializeToString(clone);
@@ -1560,9 +1606,8 @@ APP_HTML = r"""
   };
 
   document.getElementById("export-png").onclick = () => {
-    const source = makeExportSvg();
     const url = URL.createObjectURL(
-      new Blob([source], {type: "image/svg+xml;charset=utf-8"})
+      new Blob([makeExportSvg()], {type: "image/svg+xml;charset=utf-8"})
     );
     const image = new Image();
 
@@ -1592,13 +1637,12 @@ APP_HTML = r"""
   };
 
   document.getElementById("export-json").onclick = () => {
-    const data = {
-      version: 2,
-      scenes,
-      activeScene
-    };
     downloadBlob(
-      new Blob([JSON.stringify(data, null, 2)], {
+      new Blob([JSON.stringify({
+        version: 3,
+        scenes,
+        activeScene
+      }, null, 2)], {
         type: "application/json;charset=utf-8"
       }),
       "psychodrama_project.json"
@@ -1620,7 +1664,8 @@ APP_HTML = r"""
       }
 
       const allowedTypes = new Set(POOL.map(item => item.type));
-      const cleanScenes = data.scenes.slice(0, 6).map((scene, index) => {
+
+      scenes = data.scenes.slice(0, 6).map((scene, index) => {
         const nodes = Array.isArray(scene.nodes)
           ? scene.nodes
               .filter(node => node && allowedTypes.has(node.type))
@@ -1637,6 +1682,7 @@ APP_HTML = r"""
           : [];
 
         const nodeIds = new Set(nodes.map(node => node.id));
+
         const connections = Array.isArray(scene.connections)
           ? scene.connections
               .filter(connection =>
@@ -1660,16 +1706,38 @@ APP_HTML = r"""
               }))
           : [];
 
+        const drawings = Array.isArray(scene.drawings)
+          ? scene.drawings
+              .filter(drawing => drawing && Array.isArray(drawing.points))
+              .map(drawing => ({
+                color: /^#[0-9A-Fa-f]{6}$/.test(drawing.color)
+                  ? drawing.color
+                  : "#587E9A",
+                width: Math.max(2, Math.min(18, Number(drawing.width) || 5)),
+                points: drawing.points
+                  .filter(point =>
+                    point &&
+                    Number.isFinite(Number(point.x)) &&
+                    Number.isFinite(Number(point.y))
+                  )
+                  .map(point => ({
+                    x: Math.max(0, Math.min(1200, Number(point.x))),
+                    y: Math.max(0, Math.min(760, Number(point.y)))
+                  }))
+              }))
+          : [];
+
         return {
           name: String(scene.name || `Сцена ${index + 1}`).slice(0, 40),
           nodes,
-          connections
+          connections,
+          drawings
         };
       });
 
-      scenes = cleanScenes.length
-        ? cleanScenes
-        : [{name: "Сцена 1", nodes: [], connections: []}];
+      if (!scenes.length) {
+        scenes = [{name: "Сцена 1", nodes: [], connections: [], drawings: []}];
+      }
 
       activeScene = Math.max(
         0,
@@ -1678,6 +1746,7 @@ APP_HTML = r"""
       selectedId = null;
       selectedConnectionId = null;
       pendingConnectionFrom = null;
+      drawingState = null;
       nextId += 1;
       nextConnectionId += 1;
 
@@ -1705,13 +1774,13 @@ APP_HTML = r"""
 
 st.title("Психодрама: интерактивная сцена")
 st.write(
-    "Выбирайте образы, размещайте их на сцене и создавайте собственную "
-    "визуальную композицию. При необходимости соединяйте фигуры линиями."
+    "Выбирайте образы, размещайте их на сцене, соединяйте линиями "
+    "и дорисовывайте детали от руки."
 )
 
 st.info(
     "Это визуальный инструмент для исследования ситуации, а не диагностика. "
-    "Положение, форма, цвет и связи не интерпретируются автоматически. "
+    "Образы, рисунки, линии, цвет и положение не интерпретируются автоматически. "
     "Вы сами выбираете значение образов и подписей; упражнение можно остановить "
     "в любой момент."
 )
