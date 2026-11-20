@@ -10,6 +10,7 @@ st.set_page_config(
     layout="wide",
 )
 
+# Принудительно используем светлую тему Streamlit.
 st.markdown(
     """
     <style>
@@ -46,11 +47,7 @@ st.markdown(
         padding-bottom: 3rem;
     }
 
-    h1,
-    h2,
-    h3,
-    p,
-    label {
+    h1, h2, h3, p, label {
         color: #294A65 !important;
     }
 
@@ -785,15 +782,19 @@ APP_HTML = r"""
           <button class="tool-btn" id="grid-toggle" type="button">
             Сетка: выкл.
           </button>
+
           <button class="tool-btn" id="connect-toggle" type="button">
             Создать связь
           </button>
+
           <button class="tool-btn" id="draw-toggle" type="button">
             Рисовать
           </button>
+
           <button class="tool-btn" id="undo-drawing" type="button">
             Отменить штрих
           </button>
+
           <button class="tool-btn" id="redo-drawing" type="button">
             Повторить штрих
           </button>
@@ -811,6 +812,7 @@ APP_HTML = r"""
           <button class="tool-btn" id="clear-drawings" type="button">
             Удалить рисунки
           </button>
+
           <button class="tool-btn" id="clear-scene" type="button">
             Очистить сцену
           </button>
@@ -820,12 +822,15 @@ APP_HTML = r"""
           <button class="tool-btn" id="export-svg" type="button">
             Скачать SVG
           </button>
+
           <button class="tool-btn" id="export-png" type="button">
             Скачать PNG
           </button>
+
           <button class="tool-btn" id="export-json" type="button">
             Скачать проект
           </button>
+
           <button class="tool-btn" id="import-json-btn" type="button">
             Открыть проект
           </button>
@@ -989,9 +994,7 @@ APP_HTML = r"""
       </div>
 
       <div class="selection-panel" id="connection-panel">
-        <strong id="connection-selection-title">
-          Выбранная связь
-        </strong>
+        <strong id="connection-selection-title">Выбранная связь</strong>
 
         <div class="selection-tools">
           <label class="field">
@@ -1041,7 +1044,7 @@ APP_HTML = r"""
 
       <div class="privacy">
         Это визуальный инструмент для исследования ситуации, а не диагностика.
-        Фигуры, рисунки, линии, цвет и положение не интерпретируются автоматически.
+        Образы, рисунки, линии, цвет и положение не интерпретируются автоматически.
         Упражнение добровольное: можно сделать паузу или завершить его в любой момент.
         Для продолжения позже скачайте файл проекта JSON.
       </div>
@@ -1148,6 +1151,7 @@ APP_HTML = r"""
           drawings: []
         }
       ];
+
       let activeScene = 0;
       let activeCategory = "people";
       let selectedId = null;
@@ -1162,7 +1166,7 @@ APP_HTML = r"""
       let drawMode = false;
       let drawingState = null;
 
-      // История относится к индивидуальным штрихам.
+      // История отмены/повтора хранит только отдельные штрихи.
       let drawingUndoStack = [];
       let drawingRedoStack = [];
 
@@ -1192,85 +1196,107 @@ APP_HTML = r"""
           const group = svgEl("g", {
             transform: `scale(${scale})`
           });
+
           parent.appendChild(group);
 
           const isFemaleStyle =
             style === "female" || style === "girl";
 
-          // Ноги.
-          group.appendChild(svgEl("path", {
-            d: "M-8 24 L-12 46 M8 24 L12 46",
-            fill: "none",
-            stroke,
-            "stroke-width": 4.5,
-            "stroke-linecap": "round"
-          }));
-
-          // Руки.
-          group.appendChild(svgEl("path", {
-            d: "M-12 -1 L-25 13 M12 -1 L25 13",
-            fill: "none",
-            stroke,
-            "stroke-width": 4.5,
-            "stroke-linecap": "round"
-          }));
-
-          // Одежда отличается по силуэту.
-          group.appendChild(svgEl("path", {
-            d: isFemaleStyle
-              ? "M-12 -8 Q0 -14 12 -8 L18 7 L24 25 Q0 31 -24 25 L-18 7 Z"
-              : "M-13 -8 Q0 -14 13 -8 L18 25 Q0 31 -18 25 Z",
-            fill: color,
-            stroke,
-            "stroke-width": 2,
-            "stroke-linejoin": "round"
-          }));
-
-          // Голова.
-          group.appendChild(svgEl("circle", {
-            cx: 0,
-            cy: -24,
-            r: 12,
-            fill: "#F1C9A8",
-            stroke,
-            "stroke-width": 2
-          }));
-
-          // Причёска различает женский и мужской варианты.
+          // Волосы размещаются позади головы: лицо остаётся открытым.
           if (isFemaleStyle) {
             group.appendChild(svgEl("path", {
               d:
-                "M-12 -27 Q-13 -39 0 -39 Q14 -39 12 -27 " +
-                "L12 -14 Q6 -20 0 -19 Q-7 -20 -12 -14 Z",
-              fill: color,
-              stroke,
+                "M-13 -25 Q-18 -43 0 -43 Q18 -43 13 -25 " +
+                "L15 4 Q14 12 10 14 L9 -12 Q0 -21 -9 -12 " +
+                "L-10 14 Q-15 10 -15 2 Z",
+              fill: "#70574D",
+              stroke: "#59463F",
               "stroke-width": 1.5,
               "stroke-linejoin": "round"
             }));
           } else {
             group.appendChild(svgEl("path", {
               d:
-                "M-11 -27 Q-10 -39 0 -38 Q11 -39 12 -27 " +
+                "M-11 -28 Q-10 -40 0 -40 Q11 -40 12 -27 " +
                 "Q5 -31 0 -29 Q-6 -30 -11 -27 Z",
-              fill: color,
-              stroke,
+              fill: "#70574D",
+              stroke: "#59463F",
               "stroke-width": 1.5,
               "stroke-linejoin": "round"
             }));
           }
 
-          // Минимальные нейтральные черты лица.
+          // Руки и ноги.
+          group.appendChild(svgEl("path", {
+            d: "M-7 24 L-11 45 M7 24 L11 45",
+            fill: "none",
+            stroke: "#506F84",
+            "stroke-width": 4.5,
+            "stroke-linecap": "round"
+          }));
+
+          group.appendChild(svgEl("path", {
+            d: "M-12 -2 L-24 13 M12 -2 L24 13",
+            fill: "none",
+            stroke: "#506F84",
+            "stroke-width": 4.5,
+            "stroke-linecap": "round"
+          }));
+
+          // Одежда слегка отличается силуэтом.
+          if (isFemaleStyle) {
+            group.appendChild(svgEl("path", {
+              d:
+                "M-11 -8 Q0 -14 11 -8 L15 5 " +
+                "L23 25 Q0 32 -23 25 L-15 5 Z",
+              fill: color,
+              stroke: "#506F84",
+              "stroke-width": 2,
+              "stroke-linejoin": "round"
+            }));
+          } else {
+            group.appendChild(svgEl("path", {
+              d:
+                "M-12 -8 Q0 -14 12 -8 L17 22 " +
+                "L12 27 L0 23 L-12 27 L-17 22 Z",
+              fill: color,
+              stroke: "#506F84",
+              "stroke-width": 2,
+              "stroke-linejoin": "round"
+            }));
+          }
+
+          // Голова поверх причёски.
+          group.appendChild(svgEl("circle", {
+            cx: 0,
+            cy: -24,
+            r: 12,
+            fill: "#F1C9A8",
+            stroke: "#506F84",
+            "stroke-width": 2
+          }));
+
+          // Нейтральные черты лица.
           group.appendChild(svgEl("circle", {
             cx: -4,
             cy: -24,
-            r: 1.2,
+            r: 1.3,
             fill: "#344955"
           }));
+
           group.appendChild(svgEl("circle", {
             cx: 4,
             cy: -24,
-            r: 1.2,
+            r: 1.3,
             fill: "#344955"
+          }));
+
+          group.appendChild(svgEl("path", {
+            d: "M-3 -18 Q0 -16 3 -18",
+            fill: "none",
+            stroke: "#8B6258",
+            "stroke-width": 1.4,
+            "stroke-linecap": "round"
           }));
         }
 
@@ -1285,6 +1311,7 @@ APP_HTML = r"""
         } else if (type === "giant") {
           personShape(1.35, "male");
         } else if (type === "monster") {
+          // Голова с рожками и выступами.
           add("path", {
             d:
               "M-34 25 Q-40 0 -29 -16 L-39 -37 L-18 -29 " +
@@ -1295,24 +1322,60 @@ APP_HTML = r"""
             "stroke-width": 3,
             "stroke-linejoin": "round"
           });
-          add("circle", {
-            cx: -10,
-            cy: -6,
-            r: 3,
-            fill: "#342B3E"
-          });
-          add("circle", {
-            cx: 13,
-            cy: -7,
-            r: 3,
-            fill: "#342B3E"
-          });
+
+          // Нахмуренные брови и заметные глаза.
           add("path", {
-            d: "M-12 11 Q0 20 14 10",
+            d: "M-24 -13 L-6 -7 M24 -13 L6 -7",
             fill: "none",
-            stroke: "#49385D",
-            "stroke-width": 3,
+            stroke: "#342B3E",
+            "stroke-width": 5,
             "stroke-linecap": "round"
+          });
+
+          add("ellipse", {
+            cx: -14,
+            cy: -2,
+            rx: 5,
+            ry: 7,
+            fill: "#FFF4D8"
+          });
+
+          add("ellipse", {
+            cx: 14,
+            cy: -2,
+            rx: 5,
+            ry: 7,
+            fill: "#FFF4D8"
+          });
+
+          add("circle", {
+            cx: -14,
+            cy: -1,
+            r: 2.5,
+            fill: "#A93838"
+          });
+
+          add("circle", {
+            cx: 14,
+            cy: -1,
+            r: 2.5,
+            fill: "#A93838"
+          });
+
+          // Открытая пасть и острые зубы.
+          add("path", {
+            d: "M-19 10 Q0 4 19 10 L16 27 Q0 36 -16 27 Z",
+            fill: "#3A2932",
+            stroke: "#49385D",
+            "stroke-width": 2
+          });
+
+          add("path", {
+            d: "M-15 11 L-10 21 L-5 12 L0 22 L5 11 L10 21 L15 10",
+            fill: "#FFFFFF",
+            stroke: "#FFFFFF",
+            "stroke-width": 2,
+            "stroke-linejoin": "round"
           });
         } else if (type === "ghost") {
           add("path", {
@@ -1326,6 +1389,7 @@ APP_HTML = r"""
             "stroke-width": 2.5,
             "stroke-linejoin": "round"
           });
+
           add("ellipse", {
             cx: -10,
             cy: -8,
@@ -1333,6 +1397,7 @@ APP_HTML = r"""
             ry: 6,
             fill: "#3D5362"
           });
+
           add("ellipse", {
             cx: 10,
             cy: -8,
@@ -1340,6 +1405,7 @@ APP_HTML = r"""
             ry: 6,
             fill: "#3D5362"
           });
+
           add("ellipse", {
             cx: 0,
             cy: 8,
@@ -1348,6 +1414,7 @@ APP_HTML = r"""
             fill: "#3D5362"
           });
         } else if (type === "dragon") {
+          // Тело и голова дракона.
           add("path", {
             d:
               "M-34 17 Q-39 -3 -20 -10 L-9 -28 L0 -12 " +
@@ -1358,18 +1425,42 @@ APP_HTML = r"""
             "stroke-width": 2.5,
             "stroke-linejoin": "round"
           });
+
+          // Крылья.
           add("path", {
-            d: "M-17 -5 L-39 -31 L-12 -21 M12 -7 L29 -34 L28 -11",
+            d: "M-10 -7 L-39 -31 L-12 -21 Z M12 -7 L29 -34 L28 -11 Z",
             fill: color,
             stroke: "#486848",
             "stroke-width": 2.5,
             "stroke-linejoin": "round"
           });
+
           add("circle", {
             cx: 23,
             cy: -3,
             r: 3,
             fill: "#283A2C"
+          });
+
+          // Два слоя пламени направлены от морды вправо.
+          add("path", {
+            d:
+              "M35 2 Q47 -8 55 -20 Q53 -4 66 -4 " +
+              "Q59 5 69 11 Q54 13 49 25 Q47 12 35 13 Z",
+            fill: "#F28B45",
+            stroke: "#C85C38",
+            "stroke-width": 2,
+            "stroke-linejoin": "round"
+          });
+
+          add("path", {
+            d:
+              "M37 5 Q49 0 56 -10 Q53 0 62 4 " +
+              "Q53 6 48 15 Q46 8 37 10 Z",
+            fill: "#FFD36A",
+            stroke: "#F0A544",
+            "stroke-width": 1.5,
+            "stroke-linejoin": "round"
           });
         } else if (type === "alien") {
           add("ellipse", {
@@ -1381,6 +1472,7 @@ APP_HTML = r"""
             stroke: "#4D786D",
             "stroke-width": 2.5
           });
+
           add("ellipse", {
             cx: -10,
             cy: -14,
@@ -1388,6 +1480,7 @@ APP_HTML = r"""
             ry: 10,
             fill: "#293E43"
           });
+
           add("ellipse", {
             cx: 10,
             cy: -14,
@@ -1395,6 +1488,7 @@ APP_HTML = r"""
             ry: 10,
             fill: "#293E43"
           });
+
           add("path", {
             d: "M-12 21 L-24 39 M12 21 L24 39 M-22 1 L-38 12 M22 1 L38 12",
             fill: "none",
@@ -1413,6 +1507,7 @@ APP_HTML = r"""
             stroke: "#536D7E",
             "stroke-width": 3
           });
+
           add("path", {
             d: "M0 -37 V-49 M-8 -49 H8",
             fill: "none",
@@ -1420,6 +1515,7 @@ APP_HTML = r"""
             "stroke-width": 3,
             "stroke-linecap": "round"
           });
+
           add("circle", {
             cx: -12,
             cy: -17,
@@ -1428,6 +1524,7 @@ APP_HTML = r"""
             stroke: "#536D7E",
             "stroke-width": 2
           });
+
           add("circle", {
             cx: 12,
             cy: -17,
@@ -1436,6 +1533,7 @@ APP_HTML = r"""
             stroke: "#536D7E",
             "stroke-width": 2
           });
+
           add("path", {
             d: "M-12 -1 H12 M-20 11 L-32 26 M20 11 L32 26 M-13 9 L-18 37 M13 9 L18 37",
             fill: "none",
@@ -1464,6 +1562,7 @@ APP_HTML = r"""
             stroke: "#A65F8C",
             "stroke-width": 2
           });
+
           personShape(.82, "female");
         } else if (type === "dog") {
           add("path", {
@@ -1477,6 +1576,7 @@ APP_HTML = r"""
             "stroke-width": 2.5,
             "stroke-linejoin": "round"
           });
+
           add("ellipse", {
             cx: -11,
             cy: -2,
@@ -1484,6 +1584,7 @@ APP_HTML = r"""
             ry: 4,
             fill: "#2F3D43"
           });
+
           add("ellipse", {
             cx: 11,
             cy: -2,
@@ -1491,6 +1592,7 @@ APP_HTML = r"""
             ry: 4,
             fill: "#2F3D43"
           });
+
           add("ellipse", {
             cx: 0,
             cy: 12,
@@ -1500,6 +1602,7 @@ APP_HTML = r"""
             stroke: "#6E5948",
             "stroke-width": 1.5
           });
+
           add("ellipse", {
             cx: 0,
             cy: 8,
@@ -1507,6 +1610,7 @@ APP_HTML = r"""
             ry: 3,
             fill: "#39484F"
           });
+
           add("path", {
             d: "M0 11 Q-2 19 -8 17 M0 11 Q2 19 8 17 M29 10 Q44 8 42 -5",
             fill: "none",
@@ -1514,8 +1618,12 @@ APP_HTML = r"""
             "stroke-width": 2.5,
             "stroke-linecap": "round"
           });
-        } else if (type === "wolf" || type === "cat" || type === "bear") {
-          let ears =
+        } else if (
+          type === "wolf" ||
+          type === "cat" ||
+          type === "bear"
+        ) {
+          const ears =
             type === "cat"
               ? "M-25 -10 L-30 -38 L-7 -26 M25 -10 L30 -38 L7 -26"
               : type === "wolf"
@@ -1532,6 +1640,7 @@ APP_HTML = r"""
             "stroke-width": 2.5,
             "stroke-linejoin": "round"
           });
+
           add("ellipse", {
             cx: -11,
             cy: -4,
@@ -1539,6 +1648,7 @@ APP_HTML = r"""
             ry: 4,
             fill: "#263A46"
           });
+
           add("ellipse", {
             cx: 11,
             cy: -4,
@@ -1546,26 +1656,89 @@ APP_HTML = r"""
             ry: 4,
             fill: "#263A46"
           });
+
+          if (type === "wolf") {
+            // Пасть и заметные клыки волка.
+            add("path", {
+              d: "M-14 8 Q0 17 14 8 L10 27 Q0 34 -10 27 Z",
+              fill: "#49363A",
+              stroke: "#526878",
+              "stroke-width": 1.5
+            });
+
+            add("path", {
+              d: "M-11 9 L-7 24 L-3 13 L1 26 L6 12 L11 9",
+              fill: "#FFFFFF",
+              stroke: "#FFFFFF",
+              "stroke-width": 2,
+              "stroke-linejoin": "round"
+            });
+          } else {
+            add("path", {
+              d: "M-6 10 Q0 15 6 10 L0 16 Z",
+              fill: "#4E5960"
+            });
+          }
         } else if (type === "bird") {
+          // Крылья отрисовываются за телом.
           add("path", {
-            d:
-              "M-32 9 Q-30 -20 -5 -24 Q20 -30 32 -9 " +
-              "L15 -4 L31 6 Q17 28 -4 23 Q-25 21 -32 9 Z",
+            d: "M-9 -1 Q-29 -27 -47 -13 Q-43 8 -16 17 Z",
+            fill: color,
+            stroke: "#496E7F",
+            "stroke-width": 2.5,
+            "stroke-linejoin": "round"
+          });
+
+          add("path", {
+            d: "M9 -1 Q29 -27 47 -13 Q43 8 16 17 Z",
+            fill: color,
+            stroke: "#496E7F",
+            "stroke-width": 2.5,
+            "stroke-linejoin": "round"
+          });
+
+          // Линии перьев.
+          add("path", {
+            d: "M-15 1 L-37 -11 M-14 8 L-34 2 M15 1 L37 -11 M14 8 L34 2",
+            fill: "none",
+            stroke: "#FFFFFF",
+            "stroke-width": 2,
+            "stroke-linecap": "round"
+          });
+
+          // Тело, голова, глаз и клюв.
+          add("ellipse", {
+            cx: 0,
+            cy: 5,
+            rx: 17,
+            ry: 25,
             fill: color,
             stroke: "#496E7F",
             "stroke-width": 2.5
           });
-          add("path", {
-            d: "M30 -8 L44 -2 L30 4 Z",
-            fill: "#E0AE4D",
-            stroke: "#927333",
-            "stroke-width": 1.5
-          });
+
           add("circle", {
-            cx: 19,
-            cy: -11,
+            cx: 0,
+            cy: -20,
+            r: 13,
+            fill: color,
+            stroke: "#496E7F",
+            "stroke-width": 2
+          });
+
+          add("circle", {
+            cx: 5,
+            cy: -22,
             r: 2.5,
             fill: "#263A46"
+          });
+
+          add("path", {
+            d: "M12 -19 L31 -12 L12 -8 Z",
+            fill: "#E0AE4D",
+            stroke: "#927333",
+            "stroke-width": 1.5,
+            "stroke-linejoin": "round"
           });
         } else if (type === "snake") {
           add("path", {
@@ -1577,6 +1750,7 @@ APP_HTML = r"""
             "stroke-width": 13,
             "stroke-linecap": "round"
           });
+
           add("circle", {
             cx: 32,
             cy: -17,
@@ -1584,6 +1758,13 @@ APP_HTML = r"""
             fill: color,
             stroke: "#526B4B",
             "stroke-width": 2
+          });
+
+          add("circle", {
+            cx: 35,
+            cy: -20,
+            r: 1.8,
+            fill: "#263A46"
           });
         } else if (type === "butterfly") {
           add("ellipse", {
@@ -1595,6 +1776,7 @@ APP_HTML = r"""
             stroke: "#66577B",
             "stroke-width": 2
           });
+
           add("ellipse", {
             cx: 18,
             cy: -14,
@@ -1604,6 +1786,7 @@ APP_HTML = r"""
             stroke: "#66577B",
             "stroke-width": 2
           });
+
           add("ellipse", {
             cx: -16,
             cy: 17,
@@ -1613,6 +1796,7 @@ APP_HTML = r"""
             stroke: "#66577B",
             "stroke-width": 2
           });
+
           add("ellipse", {
             cx: 16,
             cy: 17,
@@ -1622,6 +1806,7 @@ APP_HTML = r"""
             stroke: "#66577B",
             "stroke-width": 2
           });
+
           add("path", {
             d: "M0 -20 V27 M0 -18 Q-7 -34 -13 -35 M0 -18 Q7 -34 13 -35",
             fill: "none",
@@ -1669,6 +1854,7 @@ APP_HTML = r"""
         } else if (type === "sun") {
           for (let i = 0; i < 8; i++) {
             const angle = i * Math.PI / 4;
+
             add("line", {
               x1: Math.cos(angle) * 25,
               y1: Math.sin(angle) * 25,
@@ -1679,6 +1865,7 @@ APP_HTML = r"""
               "stroke-linecap": "round"
             });
           }
+
           add("circle", {
             cx: 0,
             cy: 0,
@@ -1719,6 +1906,7 @@ APP_HTML = r"""
             stroke: "#66577B",
             "stroke-width": 2.5
           });
+
           add("path", {
             d: "M-23 -4 Q-12 -13 -2 -4 M2 -4 Q13 -13 23 -4",
             fill: "none",
@@ -1732,6 +1920,7 @@ APP_HTML = r"""
             stroke: "#4E776E",
             "stroke-width": 3
           });
+
           add("path", {
             d: "M0 -25 V27 M-18 0 H18",
             fill: "none",
@@ -1772,6 +1961,7 @@ APP_HTML = r"""
             stroke: color,
             "stroke-width": 7
           });
+
           add("path", {
             d: "M-2 0 H36 M22 0 V12 M32 0 V9",
             fill: "none",
@@ -1794,6 +1984,7 @@ APP_HTML = r"""
             stroke: "#765744",
             "stroke-width": 2.5
           });
+
           add("rect", {
             x: -7,
             y: 9,
@@ -1815,6 +2006,7 @@ APP_HTML = r"""
             stroke: "#765744",
             "stroke-width": 3
           });
+
           add("circle", {
             cx: 14,
             cy: 3,
@@ -1833,6 +2025,7 @@ APP_HTML = r"""
             stroke: "#557E93",
             "stroke-width": 4
           });
+
           add("path", {
             d: "M0 -29 V29 M-32 0 H32",
             fill: "none",
@@ -1846,6 +2039,7 @@ APP_HTML = r"""
             stroke: "#795A42",
             "stroke-width": 2
           });
+
           add("circle", {
             cx: 0,
             cy: -10,
@@ -1854,6 +2048,7 @@ APP_HTML = r"""
             stroke: "#547B5A",
             "stroke-width": 2
           });
+
           add("circle", {
             cx: -18,
             cy: 1,
@@ -1862,6 +2057,7 @@ APP_HTML = r"""
             stroke: "#547B5A",
             "stroke-width": 2
           });
+
           add("circle", {
             cx: 18,
             cy: 1,
@@ -1889,6 +2085,7 @@ APP_HTML = r"""
             stroke: "#677B8A",
             "stroke-width": 2.5
           });
+
           add("path", {
             d: "M-34 -10 H34 M-34 16 H34 M0 -39 V-10 M-16 -10 V16 M12 -10 V16 M-2 16 V39",
             fill: "none",
@@ -1922,6 +2119,7 @@ APP_HTML = r"""
             stroke: "#667887",
             "stroke-width": 2
           });
+
           add("path", {
             d: "M0 -30 V-12 M0 0 V14 M0 27 V36",
             fill: "none",
@@ -1940,6 +2138,7 @@ APP_HTML = r"""
             "stroke-width": 7,
             transform: "rotate(-35 -15 0)"
           });
+
           add("ellipse", {
             cx: 15,
             cy: 0,
@@ -1960,6 +2159,7 @@ APP_HTML = r"""
             "stroke-width": 3,
             "stroke-dasharray": "6 5"
           });
+
           add("path", {
             d: "M-10 0 H10 M0 -10 V10",
             fill: "none",
@@ -1972,10 +2172,11 @@ APP_HTML = r"""
 
       function renderPoolIcon(parent, item) {
         const icon = svgEl("svg", {
-          viewBox: "-55 -58 110 120",
+          viewBox: "-65 -62 145 125",
           class: "pool-icon",
           "aria-hidden": "true"
         });
+
         addShape(item.type, item.color, icon);
         parent.appendChild(icon);
       }
@@ -2052,7 +2253,11 @@ APP_HTML = r"""
 
           button.ondblclick = event => {
             event.preventDefault();
-            const newName = prompt("Название сцены:", scene.name);
+
+            const newName = prompt(
+              "Название сцены:",
+              scene.name
+            );
 
             if (newName && newName.trim()) {
               scene.name = newName.trim().slice(0, 40);
@@ -2085,6 +2290,7 @@ APP_HTML = r"""
         selectedConnectionId = null;
         pendingConnectionFrom = null;
         drawingState = null;
+
         renderSceneTabs();
         renderStage();
         updateSelectionPanels();
@@ -2107,7 +2313,6 @@ APP_HTML = r"""
         renderSceneTabs();
         renderStage();
         updateSelectionPanels();
-
         setStatus("Создана новая пустая сцена.");
       }
 
@@ -2151,7 +2356,10 @@ APP_HTML = r"""
       }
 
       function renderDrawing(drawing) {
-        if (!Array.isArray(drawing.points) || drawing.points.length < 2) {
+        if (
+          !Array.isArray(drawing.points) ||
+          drawing.points.length < 2
+        ) {
           return null;
         }
 
@@ -2225,6 +2433,7 @@ APP_HTML = r"""
         const from = currentScene().nodes.find(
           node => node.id === connection.from
         );
+
         const to = currentScene().nodes.find(
           node => node.id === connection.to
         );
@@ -2339,9 +2548,9 @@ APP_HTML = r"""
           if (rendered) connectionLayer.appendChild(rendered);
         });
 
-        currentScene().nodes.forEach(
-          node => layer.appendChild(renderNode(node))
-        );
+        currentScene().nodes.forEach(node => {
+          layer.appendChild(renderNode(node));
+        });
 
         hint.style.display =
           currentScene().nodes.length ||
@@ -2369,10 +2578,13 @@ APP_HTML = r"""
 
           document.getElementById("node-label").value =
             node.label || "";
+
           document.getElementById("node-color").value =
             node.color || "#72A9C8";
+
           document.getElementById("node-size").value =
             node.size || 1;
+
           document.getElementById("node-rotation").value =
             node.rotation || 0;
         }
@@ -2383,10 +2595,13 @@ APP_HTML = r"""
 
           document.getElementById("connection-label").value =
             connection.label || "";
+
           document.getElementById("connection-color").value =
             connection.color || "#688BA7";
+
           document.getElementById("connection-style").value =
             connection.style || "solid";
+
           document.getElementById("connection-arrow").checked =
             Boolean(connection.arrow);
         }
@@ -2401,6 +2616,7 @@ APP_HTML = r"""
         if (!matrix) return {x: 600, y: 380};
 
         const local = point.matrixTransform(matrix.inverse());
+
         return {
           x: local.x,
           y: local.y
@@ -2431,7 +2647,10 @@ APP_HTML = r"""
           pendingConnectionFrom = null;
           connectMode = false;
 
-          document.getElementById("connect-toggle").classList.remove("active");
+          document
+            .getElementById("connect-toggle")
+            .classList.remove("active");
+
           document.getElementById("connect-toggle").textContent =
             "Создать связь";
 
@@ -2456,7 +2675,10 @@ APP_HTML = r"""
         pendingConnectionFrom = null;
         connectMode = false;
 
-        document.getElementById("connect-toggle").classList.remove("active");
+        document
+          .getElementById("connect-toggle")
+          .classList.remove("active");
+
         document.getElementById("connect-toggle").textContent =
           "Создать связь";
 
@@ -2476,14 +2698,18 @@ APP_HTML = r"""
             id: `drawing_${nextDrawingId++}`,
             points: [point],
             color: document.getElementById("draw-color").value,
-            width: Number(document.getElementById("draw-width").value)
+            width: Number(
+              document.getElementById("draw-width").value
+            )
           };
 
           currentScene().drawings.push(drawingState);
           stage.setPointerCapture(event.pointerId);
+
           selectedId = null;
           selectedConnectionId = null;
           updateSelectionPanels();
+
           event.preventDefault();
           return;
         }
@@ -2496,8 +2722,8 @@ APP_HTML = r"""
 
           selectedConnectionId =
             connectionGroup.getAttribute("data-connection-id");
-          selectedId = null;
 
+          selectedId = null;
           renderStage();
           updateSelectionPanels();
           event.preventDefault();
@@ -2524,14 +2750,12 @@ APP_HTML = r"""
             pendingConnectionFrom = nodeId;
             selectedId = nodeId;
             selectedConnectionId = null;
+
             setStatus("Теперь выберите вторую фигуру.");
             renderStage();
             updateSelectionPanels();
           } else {
-            createConnection(
-              pendingConnectionFrom,
-              nodeId
-            );
+            createConnection(pendingConnectionFrom, nodeId);
           }
 
           event.preventDefault();
@@ -2606,6 +2830,7 @@ APP_HTML = r"""
           50,
           Math.min(1150, point.x - dragState.offsetX)
         );
+
         node.y = Math.max(
           55,
           Math.min(705, point.y - dragState.offsetY)
@@ -2623,10 +2848,9 @@ APP_HTML = r"""
                 JSON.stringify(drawingState)
               )
             });
+
             drawingRedoStack = [];
-            setStatus(
-              "Штрих добавлен. Его можно отменить."
-            );
+            setStatus("Штрих добавлен. Его можно отменить.");
           } else {
             currentScene().drawings =
               currentScene().drawings.filter(
@@ -2653,9 +2877,11 @@ APP_HTML = r"""
           ["Enter", " "].includes(event.key)
         ) {
           event.preventDefault();
+
           selectedId =
             nodeGroup.getAttribute("data-node-id");
           selectedConnectionId = null;
+
           renderStage();
           updateSelectionPanels();
           return;
@@ -2669,85 +2895,15 @@ APP_HTML = r"""
           ["Enter", " "].includes(event.key)
         ) {
           event.preventDefault();
+
           selectedConnectionId =
-            connectionGroup.getAttribute(
-              "data-connection-id"
-            );
+            connectionGroup.getAttribute("data-connection-id");
           selectedId = null;
+
           renderStage();
           updateSelectionPanels();
         }
       });
-
-      document.getElementById("draw-toggle").onclick = event => {
-        drawMode = !drawMode;
-
-        if (drawMode) {
-          connectMode = false;
-          pendingConnectionFrom = null;
-
-          document
-            .getElementById("connect-toggle")
-            .classList.remove("active");
-
-          document.getElementById("connect-toggle").textContent =
-            "Создать связь";
-        }
-
-        event.target.classList.toggle("active", drawMode);
-        event.target.textContent =
-          drawMode
-            ? "Режим рисования: вкл."
-            : "Рисовать";
-
-        instructions.textContent = drawMode
-          ? "Режим рисования включён: рисуйте мышью или пальцем прямо на сцене."
-          : "Перетаскивайте образы мышью. Для рисования нажмите «Рисовать».";
-
-        setStatus(
-          drawMode
-            ? "Можно рисовать на доске."
-            : "Режим рисования выключен."
-        );
-      };
-
-      document.getElementById("connect-toggle").onclick = event => {
-        connectMode = !connectMode;
-        pendingConnectionFrom = null;
-
-        if (connectMode) {
-          drawMode = false;
-
-          document
-            .getElementById("draw-toggle")
-            .classList.remove("active");
-
-          document.getElementById("draw-toggle").textContent =
-            "Рисовать";
-        }
-
-        event.target.classList.toggle(
-          "active",
-          connectMode
-        );
-
-        event.target.textContent =
-          connectMode
-            ? "Выберите 2 фигуры…"
-            : "Создать связь";
-
-        instructions.textContent = connectMode
-          ? "Нажмите на первую фигуру, затем на вторую, чтобы соединить их."
-          : "Перетаскивайте образы мышью. Для рисования нажмите «Рисовать».";
-
-        setStatus(
-          connectMode
-            ? "Выберите первую фигуру для связи."
-            : "Режим связи выключен."
-        );
-
-        renderStage();
-      };
 
       function undoLastDrawing() {
         if (drawingState) {
@@ -2803,19 +2959,30 @@ APP_HTML = r"""
 
       document.getElementById("undo-drawing").onclick =
         undoLastDrawing;
+
       document.getElementById("redo-drawing").onclick =
         redoLastDrawing;
 
-      stage.addEventListener("keydown", event => {
+      window.addEventListener("keydown", event => {
+        const target = event.target;
+        const isTextField =
+          target &&
+          (
+            target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA" ||
+            target.tagName === "SELECT" ||
+            target.isContentEditable
+          );
+
+        if (isTextField) return;
+
         if (
           (event.ctrlKey || event.metaKey) &&
           event.key.toLowerCase() === "z"
         ) {
           event.preventDefault();
           undoLastDrawing();
-        }
-
-        if (
+        } else if (
           (event.ctrlKey || event.metaKey) &&
           event.key.toLowerCase() === "y"
         ) {
@@ -2823,6 +2990,72 @@ APP_HTML = r"""
           redoLastDrawing();
         }
       });
+
+      document.getElementById("draw-toggle").onclick = event => {
+        drawMode = !drawMode;
+
+        if (drawMode) {
+          connectMode = false;
+          pendingConnectionFrom = null;
+
+          document
+            .getElementById("connect-toggle")
+            .classList.remove("active");
+
+          document.getElementById("connect-toggle").textContent =
+            "Создать связь";
+        }
+
+        event.target.classList.toggle("active", drawMode);
+        event.target.textContent =
+          drawMode
+            ? "Режим рисования: вкл."
+            : "Рисовать";
+
+        instructions.textContent = drawMode
+          ? "Режим рисования включён: рисуйте мышью или пальцем прямо на сцене."
+          : "Перетаскивайте образы мышью. Для рисования нажмите «Рисовать».";
+
+        setStatus(
+          drawMode
+            ? "Можно рисовать на доске."
+            : "Режим рисования выключен."
+        );
+      };
+
+      document.getElementById("connect-toggle").onclick = event => {
+        connectMode = !connectMode;
+        pendingConnectionFrom = null;
+
+        if (connectMode) {
+          drawMode = false;
+
+          document
+            .getElementById("draw-toggle")
+            .classList.remove("active");
+
+          document.getElementById("draw-toggle").textContent =
+            "Рисовать";
+        }
+
+        event.target.classList.toggle("active", connectMode);
+        event.target.textContent =
+          connectMode
+            ? "Выберите 2 фигуры…"
+            : "Создать связь";
+
+        instructions.textContent = connectMode
+          ? "Нажмите на первую фигуру, затем на вторую, чтобы соединить их."
+          : "Перетаскивайте образы мышью. Для рисования нажмите «Рисовать».";
+
+        setStatus(
+          connectMode
+            ? "Выберите первую фигуру для связи."
+            : "Режим связи выключен."
+        );
+
+        renderStage();
+      };
 
       document.getElementById("node-label").addEventListener(
         "input",
@@ -2897,9 +3130,7 @@ APP_HTML = r"""
       document.getElementById("connection-label").addEventListener(
         "input",
         event => {
-          const connection =
-            findSelectedConnection();
-
+          const connection = findSelectedConnection();
           if (!connection) return;
 
           connection.label = event.target.value;
@@ -2915,9 +3146,7 @@ APP_HTML = r"""
       document.getElementById("connection-color").addEventListener(
         "input",
         event => {
-          const connection =
-            findSelectedConnection();
-
+          const connection = findSelectedConnection();
           if (!connection) return;
 
           connection.color = event.target.value;
@@ -2928,9 +3157,7 @@ APP_HTML = r"""
       document.getElementById("connection-style").addEventListener(
         "change",
         event => {
-          const connection =
-            findSelectedConnection();
-
+          const connection = findSelectedConnection();
           if (!connection) return;
 
           connection.style = event.target.value;
@@ -2941,9 +3168,7 @@ APP_HTML = r"""
       document.getElementById("connection-arrow").addEventListener(
         "change",
         event => {
-          const connection =
-            findSelectedConnection();
-
+          const connection = findSelectedConnection();
           if (!connection) return;
 
           connection.arrow = event.target.checked;
@@ -2968,10 +3193,8 @@ APP_HTML = r"""
 
       document.getElementById("grid-toggle").onclick = event => {
         gridOn = !gridOn;
-
         event.target.textContent =
           `Сетка: ${gridOn ? "вкл." : "выкл."}`;
-
         renderStage();
       };
 
@@ -3008,7 +3231,6 @@ APP_HTML = r"""
 
         drawingUndoStack = [];
         drawingRedoStack = [];
-
         selectedId = null;
         selectedConnectionId = null;
 
@@ -3020,21 +3242,20 @@ APP_HTML = r"""
       document.getElementById("add-custom").onclick = () => {
         const type =
           document.getElementById("custom-type").value;
+
         const label =
-          document
-            .getElementById("custom-label")
-            .value
-            .trim() || "Мой образ";
+          document.getElementById("custom-label").value.trim() ||
+          "Мой образ";
+
         const color =
           document.getElementById("custom-color").value;
 
         addNode({type, label, color});
-
         document.getElementById("custom-label").value = "";
       };
 
       stage.addEventListener("dragover", event => {
-        event.preventEventDefault();
+        event.preventDefault();
         event.dataTransfer.dropEffect = "copy";
       });
 
@@ -3067,9 +3288,7 @@ APP_HTML = r"""
           element => element.remove()
         );
 
-        const dropHint =
-          clone.querySelector("#drop-hint");
-
+        const dropHint = clone.querySelector("#drop-hint");
         const scene = currentScene();
 
         if (
@@ -3092,14 +3311,12 @@ APP_HTML = r"""
 
         link.href = url;
         link.download = filename;
+
         document.body.appendChild(link);
         link.click();
         link.remove();
 
-        setTimeout(
-          () => URL.revokeObjectURL(url),
-          1200
-        );
+        setTimeout(() => URL.revokeObjectURL(url), 1200);
       }
 
       document.getElementById("export-svg").onclick = () => {
@@ -3110,6 +3327,7 @@ APP_HTML = r"""
           ),
           "psychodrama_scene.svg"
         );
+
         setStatus("SVG-файл подготовлен для скачивания.");
       };
 
@@ -3129,7 +3347,6 @@ APP_HTML = r"""
           canvas.height = 1013;
 
           const context = canvas.getContext("2d");
-
           context.fillStyle = "#F8FCFF";
           context.fillRect(
             0,
@@ -3137,7 +3354,6 @@ APP_HTML = r"""
             canvas.width,
             canvas.height
           );
-
           context.drawImage(
             image,
             0,
@@ -3148,13 +3364,8 @@ APP_HTML = r"""
 
           canvas.toBlob(blob => {
             if (blob) {
-              downloadBlob(
-                blob,
-                "psychodrama_scene.png"
-              );
-              setStatus(
-                "PNG-файл подготовлен для скачивания."
-              );
+              downloadBlob(blob, "psychodrama_scene.png");
+              setStatus("PNG-файл подготовлен для скачивания.");
             }
 
             URL.revokeObjectURL(url);
@@ -3172,13 +3383,15 @@ APP_HTML = r"""
       };
 
       document.getElementById("export-json").onclick = () => {
+        const project = {
+          version: 4,
+          scenes,
+          activeScene
+        };
+
         downloadBlob(
           new Blob(
-            [JSON.stringify({
-              version: 4,
-              scenes,
-              activeScene
-            }, null, 2)],
+            [JSON.stringify(project, null, 2)],
             {type: "application/json;charset=utf-8"}
           ),
           "psychodrama_project.json"
@@ -3208,194 +3421,143 @@ APP_HTML = r"""
             !Array.isArray(data.scenes) ||
             !data.scenes.length
           ) {
-            throw new Error(
-              "В файле нет списка сцен."
-            );
+            throw new Error("В файле нет списка сцен.");
           }
 
           const allowedTypes =
-            new Set(
-              POOL.map(item => item.type)
-            );
+            new Set(POOL.map(item => item.type));
 
-          scenes =
-            data.scenes.slice(0, 6).map(
-              (scene, index) => {
-                const nodes =
-                  Array.isArray(scene.nodes)
-                    ? scene.nodes
-                        .filter(
-                          node =>
-                            node &&
-                            allowedTypes.has(node.type)
-                        )
-                        .map(node => ({
-                          id: String(
-                            node.id ||
-                            `figure_${nextId++}`
-                          ),
-                          type: node.type,
-                          label: String(
-                            node.label ||
-                            ""
-                          ).slice(0, 60),
-                          color:
-                            /^#[0-9A-Fa-f]{6}$/.test(
-                              node.color
-                            )
-                              ? node.color
-                              : "#72A9C8",
-                          size: Math.max(
-                            0.65,
-                            Math.min(
-                              1.6,
-                              Number(node.size) || 1
-                            )
-                          ),
-                          rotation:
-                            Number(node.rotation) || 0,
-                          x: Math.max(
-                            50,
-                            Math.min(
-                              1150,
-                              Number(node.x) || 600
-                            )
-                          ),
-                          y: Math.max(
-                            55,
-                            Math.min(
-                              705,
-                              Number(node.y) || 380
-                            )
+          scenes = data.scenes.slice(0, 6).map(
+            (scene, index) => {
+              const nodes = Array.isArray(scene.nodes)
+                ? scene.nodes
+                    .filter(
+                      node =>
+                        node &&
+                        allowedTypes.has(node.type)
+                    )
+                    .map(node => ({
+                      id: String(
+                        node.id || `figure_${nextId++}`
+                      ),
+                      type: node.type,
+                      label: String(node.label || "").slice(0, 60),
+                      color:
+                        /^#[0-9A-Fa-f]{6}$/.test(node.color)
+                          ? node.color
+                          : "#72A9C8",
+                      size: Math.max(
+                        0.65,
+                        Math.min(1.6, Number(node.size) || 1)
+                      ),
+                      rotation: Number(node.rotation) || 0,
+                      x: Math.max(
+                        50,
+                        Math.min(1150, Number(node.x) || 600)
+                      ),
+                      y: Math.max(
+                        55,
+                        Math.min(705, Number(node.y) || 380)
+                      )
+                    }))
+                : [];
+
+              const nodeIds =
+                new Set(nodes.map(node => node.id));
+
+              const connections =
+                Array.isArray(scene.connections)
+                  ? scene.connections
+                      .filter(
+                        connection =>
+                          connection &&
+                          nodeIds.has(connection.from) &&
+                          nodeIds.has(connection.to) &&
+                          connection.from !== connection.to
+                      )
+                      .map(connection => ({
+                        id: String(
+                          connection.id ||
+                          `connection_${nextConnectionId++}`
+                        ),
+                        from: connection.from,
+                        to: connection.to,
+                        label: String(
+                          connection.label || ""
+                        ).slice(0, 80),
+                        color:
+                          /^#[0-9A-Fa-f]{6}$/.test(connection.color)
+                            ? connection.color
+                            : "#688BA7",
+                        style:
+                          ["solid", "dashed", "dotted"].includes(
+                            connection.style
                           )
-                        }))
-                    : [];
+                            ? connection.style
+                            : "solid",
+                        arrow: Boolean(connection.arrow)
+                      }))
+                  : [];
 
-                const nodeIds =
-                  new Set(
-                    nodes.map(node => node.id)
-                  );
+              const drawings =
+                Array.isArray(scene.drawings)
+                  ? scene.drawings
+                      .filter(
+                        drawing =>
+                          drawing &&
+                          Array.isArray(drawing.points)
+                      )
+                      .map(drawing => ({
+                        id: String(
+                          drawing.id ||
+                          `drawing_${nextDrawingId++}`
+                        ),
+                        color:
+                          /^#[0-9A-Fa-f]{6}$/.test(drawing.color)
+                            ? drawing.color
+                            : "#587E9A",
+                        width: Math.max(
+                          2,
+                          Math.min(18, Number(drawing.width) || 5)
+                        ),
+                        points: drawing.points
+                          .filter(
+                            point =>
+                              point &&
+                              Number.isFinite(Number(point.x)) &&
+                              Number.isFinite(Number(point.y))
+                          )
+                          .map(point => ({
+                            x: Math.max(
+                              0,
+                              Math.min(1200, Number(point.x))
+                            ),
+                            y: Math.max(
+                              0,
+                              Math.min(760, Number(point.y))
+                            )
+                          }))
+                      }))
+                  : [];
 
-                const connections =
-                  Array.isArray(scene.connections)
-                    ? scene.connections
-                        .filter(
-                          connection =>
-                            connection &&
-                            nodeIds.has(connection.from) &&
-                            nodeIds.has(connection.to) &&
-                            connection.from !== connection.to
-                        )
-                        .map(connection => ({
-                          id: String(
-                            connection.id ||
-                            `connection_${nextConnectionId++}`
-                          ),
-                          from: connection.from,
-                          to: connection.to,
-                          label: String(
-                            connection.label ||
-                            ""
-                          ).slice(0, 80),
-                          color:
-                            /^#[0-9A-Fa-f]{6}$/.test(
-                              connection.color
-                            )
-                              ? connection.color
-                              : "#688BA7",
-                          style:
-                            [
-                              "solid",
-                              "dashed",
-                              "dotted"
-                            ].includes(
-                              connection.style
-                            )
-                              ? connection.style
-                              : "solid",
-                          arrow:
-                            Boolean(connection.arrow)
-                        }))
-                    : [];
-
-                const drawings =
-                  Array.isArray(scene.drawings)
-                    ? scene.drawings
-                        .filter(
-                          drawing =>
-                            drawing &&
-                            Array.isArray(drawing.points)
-                        )
-                        .map(drawing => ({
-                          id: String(
-                            drawing.id ||
-                            `drawing_${nextDrawingId++}`
-                          ),
-                          color:
-                            /^#[0-9A-Fa-f]{6}$/.test(
-                              drawing.color
-                            )
-                              ? drawing.color
-                              : "#587E9A",
-                          width: Math.max(
-                            2,
-                            Math.min(
-                              18,
-                              Number(drawing.width) || 5
-                            )
-                          ),
-                          points:
-                            drawing.points
-                              .filter(
-                                point =>
-                                  point &&
-                                  Number.isFinite(
-                                    Number(point.x)
-                                  ) &&
-                                  Number.isFinite(
-                                    Number(point.y)
-                                  )
-                              )
-                              .map(point => ({
-                                x: Math.max(
-                                  0,
-                                  Math.min(
-                                    1200,
-                                    Number(point.x)
-                                  )
-                                ),
-                                y: Math.max(
-                                  0,
-                                  Math.min(
-                                    760,
-                                    Number(point.y)
-                                  )
-                                )
-                              }))
-                        }))
-                    : [];
-
-                return {
-                  name: String(
-                    scene.name ||
-                    `Сцена ${index + 1}`
-                  ).slice(0, 40),
-                  nodes,
-                  connections,
-                  drawings
-                };
-              }
-            );
+              return {
+                name: String(
+                  scene.name || `Сцена ${index + 1}`
+                ).slice(0, 40),
+                nodes,
+                connections,
+                drawings
+              };
+            }
+          );
 
           if (!scenes.length) {
-            scenes = [
-              {
-                name: "Сцена 1",
-                nodes: [],
-                connections: [],
-                drawings: []
-              }
-            ];
+            scenes = [{
+              name: "Сцена 1",
+              nodes: [],
+              connections: [],
+              drawings: []
+            }];
           }
 
           activeScene = Math.max(
@@ -3420,7 +3582,6 @@ APP_HTML = r"""
           renderSceneTabs();
           renderStage();
           updateSelectionPanels();
-
           setStatus("Проект загружен.");
         } catch (error) {
           setStatus(
