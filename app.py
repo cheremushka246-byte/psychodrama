@@ -2893,7 +2893,7 @@ APP_HTML = r"""
     .app {
       display: flex;
       gap: 14px;
-      min-height: 1100px;
+      min-height: 850px;
       color: #294A65;
       background: #F3F9FD;
     }
@@ -2901,7 +2901,7 @@ APP_HTML = r"""
     .sidebar {
       width: 315px;
       min-width: 280px;
-      max-height: 1300px;
+      max-height: 1040px;
       overflow-y: auto;
       padding: 15px;
       border: 1px solid #D4E5F0;
@@ -3155,14 +3155,14 @@ APP_HTML = r"""
       }
     }
 
-    @media (max-width: 700px) {
+    @media (max-width: 560px) {
       .pool {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       #stage {
-        min-height: 500px;
-        height: 550px;
+        min-height: 390px;
+        height: 440px;
       }
 
       .toolbar {
@@ -6059,7 +6059,7 @@ def render_psychodrama():
             "__POOL_JSON__",
             json.dumps(POOL, ensure_ascii=False),
         ),
-        height=1400,
+        height=1120,
         scrolling=False,
     )
 
